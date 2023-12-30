@@ -5,7 +5,7 @@ type Trace = [String]
 type Prog = [Com]
 
 eval :: Stack -> Trace -> Prog -> Trace
-eval s t [] = t  -- termination state returns the trace
+eval s t [] = t  -- termination returns trace
 eval s t (Push c : p) = eval (c : s) t p
 eval (_ : s0) t (Pop : p) = eval s0 t p  -- PopStack
 eval [] t (Pop : p) = eval [] ("Panic1" : t) []  -- PopError
@@ -65,15 +65,53 @@ testInterpreter input = do
   case result of
     Left parseError -> do
       putStrLn $ "Parse Error: " ++ show parseError
-      putStrLn "--------"
+      putStrLn "-------------------------------------"
     Right prog -> do
       let trace = eval [] [] (prog)
       putStrLn $ "Trace: " ++ show trace
-      putStrLn "--------"
+      putStrLn "-------------------------------------"
 
 main :: IO ()
 main = do
   testInterpreter "Push 1; Push Unit; Push True; Push False; Push -1; Trace; Pop; Trace; Pop; Trace; Pop; Trace; Pop; Trace;"
   testInterpreter "Pop;"
   testInterpreter "Trace;"
+  testInterpreter "Push 1; Push -2; Add; Trace;"
+  testInterpreter "Push Unit; Push 1; Add;"
+  testInterpreter "Add;"
+  testInterpreter "Push 1; Add;"
+  testInterpreter "Push -1; Push -2; Sub; Trace;"
+  testInterpreter "Push Unit; Push 1; Sub;"
+  testInterpreter "Sub;"
+  testInterpreter "Push 1; Sub;"
+  testInterpreter "Push -1; Push 0; Mul; Trace;"
+  testInterpreter "Push Unit; Push 1; Mul;"
+  testInterpreter "Mul;"
+  testInterpreter "Push 1; Mul;"
+  testInterpreter "Push -1; Push -2; Div; Trace;"
+  testInterpreter "Push 0; Push 2; Div;"
+  testInterpreter "Push Unit; Push 1; Div;"
+  testInterpreter "Div;"
+  testInterpreter "Push 1; Div;"
+  testInterpreter "Push 2; Push 0; Div; Trace;"
+  testInterpreter "Push True; Push False; And; Trace;"
+  testInterpreter "Push True; Push 1; And;"
+  testInterpreter "And;"
+  testInterpreter "Push True; And;"
+  testInterpreter "Push True; Push False; Or; Trace;"
+  testInterpreter "Push True; Push 1; Or;"
+  testInterpreter "Or;"
+  testInterpreter "Push True; Or;"
+  testInterpreter "Push True; Not; Trace;"
+  testInterpreter "Push 1; Not;"
+  testInterpreter "Not;"
+  testInterpreter "Push -1; Push 0; Lt; Trace;"
+  testInterpreter "Push Unit; Push 1; Lt;"
+  testInterpreter "Lt;"
+  testInterpreter "Push 1; Lt;"
+  testInterpreter "Push -1; Push 0; Gt; Trace;"
+  testInterpreter "Push Unit; Push 1; Gt;"
+  testInterpreter "Gt;"
+  testInterpreter "Push 1; Gt;"
+
 
