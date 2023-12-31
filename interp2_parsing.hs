@@ -1,6 +1,10 @@
 module Interp2_Parsing
   ( Const(..)
   , Com(..)
+  , Stack
+  , Trace
+  , Prog
+  , Env
   , parseProgram
   ) where
 
@@ -13,7 +17,13 @@ data Const =
   | BoolConst Bool
   | UnitConst
   | Sym String
+  | Closure (String, Env, [Com])
   deriving Show
+
+type Stack = [Const]
+type Trace = [String]
+type Prog = [Com]
+type Env = [(String, Const)]
 
 data Com =
     Push Const
