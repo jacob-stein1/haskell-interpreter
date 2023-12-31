@@ -1,3 +1,9 @@
+module Interp2_Parsing
+  ( Const(..)
+  , Com(..)
+  , parseProgram
+  ) where
+
 import Text.Parsec
 import Text.Parsec.String (Parser)
 import Control.Applicative ((<*), (*>))
@@ -46,46 +52,47 @@ constParser = choice
       return $ read (sign ++ digits)
 
 comParser :: StackParser Com
-comParser = choice
-  [ try (string "And" *> notFollowedBy alphaNum) *> pure And
-  , try (string "Add" *> notFollowedBy alphaNum) *> pure Add
-  , try (string "Push" *> notFollowedBy alphaNum) *> (Push <$> (whitespace *> constParser))
-  , try (string "Pop" *> notFollowedBy alphaNum) *> pure Pop
-  , Sub <$ string "Sub"
-  , Mul <$ string "Mul"
-  , Div <$ string "Div"
-  , Or <$ string "Or"
-  , Not <$ string "Not"
-  , Lt <$ string "Lt"
-  , Gt <$ string "Gt"
-  , Trace <$ string "Trace"
-  , Swap <$ string "Swap"
-  , Call <$ string "Call"
-  , Return <$ string "Return"
-  , Bind <$ string "Bind"
-  , Lookup <$ string "Lookup"
-  , Mod <$ string "Mod"
-  , try (lookAhead (string "If" *> many (oneOf " \t\n\r") *> alphaNum)) *> ifteParser
-  , try (lookAhead (string "Fun" *> many (oneOf " \t\n\r") *> alphaNum)) *> funParser
-  ] <* optional whitespace
+comParser = do
+  whitespace
+  command <- choice
+    [ try (string "And" *> notFollowedBy alphaNum) *> pure And
+    , try (string "Add" *> notFollowedBy alphaNum) *> pure Add
+    , try (string "Push" *> notFollowedBy alphaNum) *> (Push <$> (whitespace *> constParser))
+    , try (string "Pop" *> notFollowedBy alphaNum) *> pure Pop
+    , Sub <$ string "Sub"
+    , Mul <$ string "Mul"
+    , Div <$ string "Div"
+    , Or <$ string "Or"
+    , Not <$ string "Not"
+    , Lt <$ string "Lt"
+    , Gt <$ string "Gt"
+    , Trace <$ string "Trace"
+    , Swap <$ string "Swap"
+    , Call <$ string "Call"
+    , Return <$ string "Return"
+    , Bind <$ string "Bind"
+    , Lookup <$ string "Lookup"
+    , Mod <$ string "Mod"
+    , try (lookAhead (string "If" *> many (oneOf " \t\n\r") *> alphaNum)) *> ifteParser
+    , try (lookAhead (string "Fun" *> many (oneOf " \t\n\r") *> alphaNum)) *> funParser
+    ] <* optional (string ";" *> optional whitespace)
+  return command
 
 ifteParser :: StackParser Com
 ifteParser = do
-  ifBranch <- between (string "If") (string "Else") (programParser <* optional whitespace)
-  elseBranch <- between (string "Else") (string "End") (programParser <* optional whitespace)
+  ifBranch <- between (string "If") (string "Else") (many comParser)
+  elseBranch <- manyTill comParser (try (string "End"))
   return $ Ifte ifBranch elseBranch
 
 funParser :: StackParser Com
-funParser = Fun <$> between (string "Fun") (string "End") (many (comParser <* optional whitespace))
-
-programParser :: StackParser [Com]
-programParser = spaces *> sepEndBy comParser (string ";" *> optional whitespace) <* optional whitespace <* eof
+funParser = Fun <$> between (string "Fun") (string "End") (many comParser)
 
 parseProgram :: String -> IO (Either ParseError [Com])
-parseProgram = runParserT programParser () "input"
+parseProgram = runParserT (many comParser) () "input"
 
-main :: IO ()
-main = do
-  let input = "Push True; If Add; Sub; Else; Add; End;"
-  result <- parseProgram input
-  print result
+-- main :: IO ()
+-- main = do
+--   let input = "If Push -1; If Pop; Else Bind; End; Else Push 1; End;"
+--   let input = "Fun Push 3; Push 4; Mul; Return; End;"
+--   result <- parseProgram input
+--   print result
