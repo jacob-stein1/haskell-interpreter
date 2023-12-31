@@ -5,6 +5,8 @@ Fun
  Bind;
  Push x;
  Lookup;
+ Push x;
+ Lookup;
  Mul;
  Push -4;
  Push x;

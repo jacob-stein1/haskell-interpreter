@@ -1,0 +1,39 @@
+Push factorial;
+ 
+Fun
+ Push n; 
+ Bind;
+ Push n;
+ Lookup;
+ Push 2;
+ Gt;
+
+ If
+  Push 1;
+  Swap;
+  Return; 
+ Else
+  Push n;
+  Lookup;
+  Push -1;
+  Add;
+  Push factorial;
+  Lookup;
+  Call;
+  Push n;
+  Lookup;
+  Mul;
+  Swap;
+  Return; 
+ End;
+End;
+
+Push factorial;
+Bind;
+
+Push 4;
+Push factorial;
+Lookup;
+Call;
+
+Trace;

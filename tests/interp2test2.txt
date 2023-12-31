@@ -1,0 +1,8 @@
+Push 2;
+Push 2;
+Mul;
+Push 3;
+Push 3;
+Mul;
+Gt;
+Trace;

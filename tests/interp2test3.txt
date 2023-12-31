@@ -1,0 +1,11 @@
+Push False;
+Push False;
+And;
+Not;
+Trace;
+Push False;
+Not;
+Push False;
+Not;
+Or;
+Trace;

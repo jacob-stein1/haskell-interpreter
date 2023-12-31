@@ -1,0 +1,10 @@
+Push 3;
+Push 3;
+Mul;
+Push -4;
+Push 3;
+Mul;
+Add;
+Push 7;
+Add;
+Trace;
