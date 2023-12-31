@@ -1,22 +1,21 @@
+module Interp3_Ast_Tests where
+
 data UOpr = Neg | Not deriving (Show)
 data BOpr = Add | Sub | Mul | Div | Mod | And | Or | Lt | Gt | Lte | Gte | Eq deriving (Show)
 data Expr
   = Int Int
   | Bool Bool
   | Unit
-  | UOpr UOpr Expr
-  | BOpr BOpr Expr Expr
+  | UOpr (UOpr, Expr)
+  | BOpr (BOpr, Expr, Expr)
   | Var String
-  | Fun String String Expr
-  | App Expr Expr
-  | Let String Expr Expr
-  | Seq Expr Expr
-  | Ifte Expr Expr Expr
+  | Fun (String, String, Expr)
+  | App (Expr, Expr)
+  | Let (String, Expr, Expr)
+  | Seq (Expr, Expr)
+  | Ifte (Expr, Expr, Expr)
   | Trace Expr
   deriving (Show)
-
-main :: IO ()
-main = return ()
 
 {- 
 
@@ -24,11 +23,10 @@ TEST 1 HIGH LEVEL:
 
 trace 1; trace 2
 
-TEST 1 OCAML LOW LEVEL
-
-Seq (Trace (Int 1), Trace (Int 2))
-
 -}
+
+test1 :: Expr
+test1 = Seq (Trace (Int 1), Trace (Int 2))
 
 {- 
 
@@ -39,16 +37,16 @@ let rec fact x =
     else x * fact (x - 1)
 in trace (fact 10)
 
-TEST 2 LOW LEVEL
+-}
 
-Let ("vfacti1",
+test2 :: Expr
+test2 =
+  Let ("vfacti1",
    Fun ("vfacti2", "vxi3",
     Ifte (BOpr (Lte, Var "vxi3", Int 0), Int 1,
      BOpr (Mul, Var "vxi3",
       App (Var "vfacti2", BOpr (Sub, Var "vxi3", Int 1))))),
    Trace (App (Var "vfacti1", Int 10)))
-
--}
 
 {- 
 
@@ -63,25 +61,25 @@ let fibo x =
     in loop 0 0 1
 in trace (fibo 10)
 
-TEST 3 LOW LEVEL
-
-Let ("vfiboi1",
-   Fun ("vi2", "vxi3",
-    Let ("vloopi4",
-     Fun ("vloopi5", "vii6",
-      Fun ("vi7", "vai8",
-       Fun ("vi9", "vbi10",
-        Seq (Trace (Var "vai8"),
-         Ifte (BOpr (Lt, Var "vii6", Var "vxi3"),
-          App
-           (App (App (Var "vloopi5", BOpr (Add, Var "vii6", Int 1)),
-             Var "vbi10"),
-           BOpr (Add, Var "vai8", Var "vbi10")),
-          Var "vai8"))))),
-     App (App (App (Var "vloopi4", Int 0), Int 0), Int 1))),
-   Trace (App (Var "vfiboi1", Int 10)))
-
 -}
+
+test3 :: Expr
+test3 = 
+  Let ("vfiboi1",
+    Fun ("vi2", "vxi3",
+      Let ("vloopi4",
+      Fun ("vloopi5", "vii6",
+        Fun ("vi7", "vai8",
+        Fun ("vi9", "vbi10",
+          Seq (Trace (Var "vai8"),
+          Ifte (BOpr (Lt, Var "vii6", Var "vxi3"),
+            App
+            (App (App (Var "vloopi5", BOpr (Add, Var "vii6", Int 1)),
+              Var "vbi10"),
+            BOpr (Add, Var "vai8", Var "vbi10")),
+            Var "vai8"))))),
+      App (App (App (Var "vloopi4", Int 0), Int 0), Int 1))),
+    Trace (App (Var "vfiboi1", Int 10)))
 
 {- 
 
@@ -91,17 +89,17 @@ let eff x = trace x in
 let foo x y z = () in
 foo (eff 1) (eff 2) (eff 3)
 
-TEST 4 LOW LEVEL
+-}
 
-Let ("veffi1", Fun ("vi2", "vxi3", Trace (Var "vxi3")),
+test4 :: Expr
+test4 = 
+  Let ("veffi1", Fun ("vi2", "vxi3", Trace (Var "vxi3")),
    Let ("vfooi4",
     Fun ("vi5", "vxi6", Fun ("vi7", "vyi8", Fun ("vi9", "vzi10", Unit))),
     App
      (App (App (Var "vfooi4", App (Var "veffi1", Int 1)),
        App (Var "veffi1", Int 2)),
      App (Var "veffi1", Int 3))))
-
--}
 
 {- 
 
@@ -113,16 +111,16 @@ let rec mccarthy n =
 in
 trace (mccarthy 22)
 
-TEST 5 LOW LEVEL
+-}
 
-Let ("vmccarthyi1",
+test5 :: Expr
+test5 = 
+  Let ("vmccarthyi1",
    Fun ("vmccarthyi2", "vni3",
     Ifte (BOpr (Gt, Var "vni3", Int 100), BOpr (Sub, Var "vni3", Int 10),
      App (Var "vmccarthyi2",
       App (Var "vmccarthyi2", BOpr (Add, Var "vni3", Int 11))))),
    Trace (App (Var "vmccarthyi1", Int 22)))
-
--}
 
 {- 
 
@@ -134,9 +132,11 @@ let rec iter n f g =
 in
 let rec pow x = trace x; x * x in iter 4 pow (fun _ -> 2)
 
-TEST 6 LOW LEVEL
+-}
 
-Let ("viteri1",
+test6 :: Expr
+test6 = 
+  Let ("viteri1",
    Fun ("viteri2", "vni3",
     Fun ("vi4", "vfi5",
      Fun ("vi6", "vgi7",
@@ -152,8 +152,6 @@ Let ("viteri1",
     App (App (App (Var "viteri1", Int 4), Var "vpowi8"),
      Fun ("vi11", "vi12", Int 2))))
 
--}
-
 {- 
 
 TEST 7 HIGH LEVEL
@@ -166,9 +164,11 @@ trace (gcd 77 11);
 trace (gcd 77 121);
 trace (gcd 39 91)
 
-TEST 7 LOW LEVEL
+-}
 
-Let ("vgcdi1",
+test7 :: Expr
+test7 = 
+  Let ("vgcdi1",
    Fun ("vgcdi2", "vai3",
     Fun ("vi4", "vbi5",
      Ifte (BOpr (Eq, Var "vai3", Int 0), Var "vbi5",
@@ -177,8 +177,6 @@ Let ("vgcdi1",
    Seq (Trace (App (App (Var "vgcdi1", Int 77), Int 11)),
     Seq (Trace (App (App (Var "vgcdi1", Int 77), Int 121)),
      Trace (App (App (Var "vgcdi1", Int 39), Int 91)))))
-
--}
 
 {- 
 
@@ -200,9 +198,11 @@ let x = 1234 * 1234 in
 trace x;
 trace (sqrt x)
 
-TEST 8 LOW LEVEL
+-}
 
-Let ("vbsearchi1",
+test8 :: Expr
+test8 = 
+  Let ("vbsearchi1",
    Fun ("vbsearchi2", "vni3",
     Fun ("vi4", "vii5",
      Fun ("vi6", "vji7",
@@ -222,8 +222,6 @@ Let ("vbsearchi1",
      App (App (App (Var "vbsearchi1", Var "vni12"), Int 0), Var "vni12")),
     Let ("vxi13", BOpr (Mul, Int 1234, Int 1234),
      Seq (Trace (Var "vxi13"), Trace (App (Var "vsqrti10", Var "vxi13"))))))
-
--}
 
 {- 
 
@@ -248,9 +246,11 @@ let rec pi n =
 in
 pi 6
 
-TEST 9 LOW LEVEL
+-}
 
-Let ("vpii1",
+test9 :: Expr
+test9 = 
+  Let ("vpii1",
    Fun ("vpii2", "vni3",
     Let ("vqi4", Int 1,
      Let ("vri5", Int 180,
@@ -308,5 +308,3 @@ Let ("vpii1",
             Var "vti6"),
           Var "vji7"))))))),
    App (Var "vpii1", Int 6))
-
--}
