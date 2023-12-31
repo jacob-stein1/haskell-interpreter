@@ -1,0 +1,23 @@
+Push poly;
+
+Fun
+ Push x;
+ Bind;
+ Push x;
+ Lookup;
+ Mul;
+ Push -4;
+ Push x;
+ Lookup;
+ Mul;
+ Add;
+ Push 7;
+ Add;
+ Swap;
+ Return;
+End;
+
+Push 3;
+Swap;
+Call;
+Trace;

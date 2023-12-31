@@ -53,7 +53,7 @@ constParser = choice
   , BoolConst True <$ string "True"
   , BoolConst False <$ string "False"
   , UnitConst <$ string "Unit"
-  , Sym <$> (string "Sym" *> whitespace *> many1 (noneOf " \t\n\r;"))
+  , Sym <$> (many1 (noneOf " \t\n\r;"))
   ]
   where
     optionalSign = do
@@ -69,19 +69,19 @@ comParser = do
     , try (string "Add" *> notFollowedBy alphaNum) *> pure Add
     , try (string "Push" *> notFollowedBy alphaNum) *> (Push <$> (whitespace *> constParser))
     , try (string "Pop" *> notFollowedBy alphaNum) *> pure Pop
-    , Sub <$ string "Sub"
+    , try (string "Lookup" *> notFollowedBy alphaNum) *> pure Lookup
+    , try (string "Lt" *> notFollowedBy alphaNum) *> pure Lt
+    , try (string "Sub" *> notFollowedBy alphaNum) *> pure Sub
+    , try (string "Swap" *> notFollowedBy alphaNum) *> pure Swap
     , Mul <$ string "Mul"
     , Div <$ string "Div"
     , Or <$ string "Or"
     , Not <$ string "Not"
-    , Lt <$ string "Lt"
     , Gt <$ string "Gt"
     , Trace <$ string "Trace"
-    , Swap <$ string "Swap"
     , Call <$ string "Call"
     , Return <$ string "Return"
     , Bind <$ string "Bind"
-    , Lookup <$ string "Lookup"
     , Mod <$ string "Mod"
     , try (lookAhead (string "If" *> many (oneOf " \t\n\r") *> alphaNum)) *> ifteParser
     , try (lookAhead (string "Fun" *> many (oneOf " \t\n\r") *> alphaNum)) *> funParser
@@ -99,10 +99,3 @@ funParser = Fun <$> between (string "Fun") (string "End") (many comParser)
 
 parseProgram :: String -> IO (Either ParseError [Com])
 parseProgram = runParserT (many comParser) () "input"
-
--- main :: IO ()
--- main = do
---   let input = "If Push -1; If Pop; Else Bind; End; Else Push 1; End;"
---   let input = "Fun Push 3; Push 4; Mul; Return; End;"
---   result <- parseProgram input
---   print result

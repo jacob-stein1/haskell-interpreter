@@ -1,5 +1,6 @@
 import Interp2_Parsing
-import Data.Maybe (fromMaybe)
+import System.IO
+import Control.Monad
 
 search :: String -> Env -> Maybe Const
 search _ [] = Nothing
@@ -75,5 +76,50 @@ eval (_ : v : s0) e t (Bind : p) = eval [] e ("Panic34" : t) []  -- BindError1
 eval [_] e t (Bind : p) = eval [] e ("Panic35" : t) []  -- BindError3
 eval [] e t (Bind : p) = eval [] e ("Panic36" : t) []  -- BindError2
 
+eval (Sym x : s0) e t (Lookup : p) =
+  case search x e of
+    Just v -> eval (v : s0) e t p  -- LookupStack
+    Nothing -> eval [] e ("Panic37" : t) []  -- LookupError4
+eval (_ : s0) e t (Lookup : p) = eval [] e ("Panic38" : t) []  -- LookupError1
+eval [] e t (Lookup : p) = eval [] e ("Panic39" : t) []  -- LookupError3
+
+eval (Sym x : s0) e t (Fun coms : p) =
+  eval (Closure (x, e, coms) : s0) e t p  -- FunStack
+eval (_ : s0) _ t (Fun _ : _) = eval [] [] ("Panic40" : t) []  -- FunError1
+eval [] _ t (Fun _ : _) = eval [] [] ("Panic41" : t) []  -- FunError2
+
+eval (Closure (f, ef, coms) : a : s0) e t (Call : p0) =
+  eval (a : Closure ("cc", e, p0) : s0) ((f, Closure (f, ef, coms)) : ef) t coms  -- CallStack
+eval (_ : []) _ t (Call : _) = eval [] [] ("Panic42" : t) []  -- CallError3
+eval (_ : s0) _ t (Call : _) = eval [] [] ("Panic43" : t) []  -- CallError1
+eval [] _ t (Call : _) = eval [] [] ("Panic44" : t) []  -- CallError2
+
+eval (Closure (f, ef, coms) : a : s0) e t (Return : p0) =
+  eval (a : s0) ef t coms  -- ReturnStack
+eval (_ : []) _ t (Return : _) = eval [] [] ("Panic45" : t) []  -- ReturnError3
+eval (_ : s0) _ t (Return : _) = eval [] [] ("Panic46" : t) []  -- ReturnError1
+eval [] _ t (Return : _) = eval [] [] ("Panic47" : t) []  -- ReturnError2
+
+testInterpreter :: String -> IO ()
+testInterpreter input = do
+  putStrLn $ "Input: " ++ input
+  result <- parseProgram input
+  case result of
+    Left parseError -> do
+      putStrLn $ "Parse Error: " ++ show parseError
+      putStrLn "-------------------------------------"
+    Right prog -> do
+      let trace = eval [] [] [] (prog)
+      putStrLn $ "Trace: " ++ show trace
+      putStrLn "-------------------------------------"
+
+readTests :: IO ()
+readTests = do
+  forM_ [1..10] $ \fileNumber -> do
+    let filePath = "./tests/interp2test" ++ show fileNumber ++ ".txt"
+    putStrLn $ "Processing file: " ++ filePath
+    contents <- readFile filePath
+    testInterpreter contents
+
 main :: IO ()
-main = return ()
+main = readTests
