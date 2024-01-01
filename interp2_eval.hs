@@ -1,3 +1,5 @@
+module Interp2_Eval ( eval ) where
+
 import Interp2_Parsing
 import System.IO
 import Control.Monad

@@ -1,3 +1,5 @@
+module Interp3_Ast_Translate where
+
 import Interp3_Ast_Tests as H
 import Interp2_Parsing as L
 
@@ -58,32 +60,3 @@ translateTrace m = translateExpr m ++ [L.Trace]
 
 translateAst :: Expr -> Prog
 translateAst expr = translateExpr expr
-
-main :: IO ()
-main = do
-  putStrLn "Test 1:"
-  print $ translateAst test1
-
-  putStrLn "\nTest 2:"
-  print $ translateAst test2
-
-  putStrLn "\nTest 3:"
-  print $ translateAst test3
-
-  putStrLn "\nTest 4:"
-  print $ translateAst test4
-
-  putStrLn "\nTest 5:"
-  print $ translateAst test5
-
-  putStrLn "\nTest 6:"
-  print $ translateAst test6
-
-  putStrLn "\nTest 7:"
-  print $ translateAst test7
-
-  putStrLn "\nTest 8:"
-  print $ translateAst test8
-
-  putStrLn "\nTest 9:"
-  print $ translateAst test9
