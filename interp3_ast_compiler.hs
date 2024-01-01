@@ -24,7 +24,7 @@ decompileCom com =
     L.Bind -> "Bind; "
     L.Lookup -> "Lookup; "
     L.Ifte ifCom elseCom -> "If " ++ decompile ifCom ++ "Else " ++ decompile elseCom ++ "End; "
-    L.Fun funCom -> "Fun " ++ decompile funCom ++ "End; "
+    L.Fun funCom -> "Fun " ++ decompile funCom ++ "Swap; Return; End; "
 
 decompileConst :: Const -> String
 decompileConst const =
