@@ -37,7 +37,6 @@ data Com =
   | Return
   | Bind
   | Lookup
-  | Mod
   | Ifte [Com] [Com]
   | Fun [Com]
   deriving Show
@@ -82,7 +81,6 @@ comParser = do
     , Call <$ string "Call"
     , Return <$ string "Return"
     , Bind <$ string "Bind"
-    , Mod <$ string "Mod"
     , try (lookAhead (string "If" *> many (oneOf " \t\n\r") *> alphaNum)) *> ifteParser
     , try (lookAhead (string "Fun" *> many (oneOf " \t\n\r") *> alphaNum)) *> funParser
     ] <* optional (string ";" *> optional whitespace)
