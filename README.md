@@ -18,7 +18,7 @@
 - Possible values:
   - `Push Const`: Pushes a constant onto the stack.
   - `Pop`: Pops the top element from the stack.
-  - `Trace`: Duplicates the top of the stack and adds it to the trace.
+  - `Trace`: Removes the top of the stack and adds it to the trace, pushes a Unit.
   - `Add`, `Sub`, `Mul`, `Div`: Arithmetic operations.
   - `And`, `Or`, `Not`: Logical operations.
   - `Lt`, `Gt`: Comparison operations.
@@ -57,7 +57,7 @@
 
 - `Push`: Pushes a constant onto the stack.
 - `Pop`: Pops the top element from the stack.
-- `Trace`: Duplicates the top of the stack and adds it to the trace.
+- `Trace`: Removes the top of the stack and adds it to the trace, pushes a Unit.
 
 ### Arithmetic Commands
 
